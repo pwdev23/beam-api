@@ -12,10 +12,10 @@ func init() {
 
 func main() {
 	initializers.DB.AutoMigrate(
-		&models.DriverIdentity{},
+		&models.User{},
 		&models.Driver{},
+		&models.DriverIdentity{},
 		&models.DriverTopUp{},
 		&models.Session{},
-		&models.User{},
 	)
 }
