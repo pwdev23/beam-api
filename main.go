@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/pwdev23/beam-api/controllers"
 	"github.com/pwdev23/beam-api/initializers"
+	"github.com/pwdev23/beam-api/middleware"
 )
 
 func init() {
@@ -15,9 +17,17 @@ func main() {
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "Hello World!",
+			"message": "Hello, Beam API!",
 		})
 	})
+
+	// User Routes
+	userRoutes := r.Group("/api/v1/users")
+	{
+		userRoutes.POST("/register", controllers.RegisterUser)
+		userRoutes.POST("/login", controllers.LoginUser)
+		userRoutes.GET("/profile", middleware.AuthMiddleware(), controllers.GetUserProfile)
+	}
 
 	r.Run()
 }
