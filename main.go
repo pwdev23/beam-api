@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pwdev23/beam-api/controllers"
 	"github.com/pwdev23/beam-api/initializers"
 	"github.com/pwdev23/beam-api/middleware"
+	"github.com/pwdev23/beam-api/routes"
 )
 
 func init() {
@@ -15,19 +15,16 @@ func init() {
 func main() {
 	r := gin.Default()
 
+	r.Use(middleware.CORSMiddleware())
+
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, Beam API!",
 		})
 	})
 
-	// User Routes
-	userRoutes := r.Group("/api/v1/users")
-	{
-		userRoutes.POST("/register", controllers.RegisterUser)
-		userRoutes.POST("/login", controllers.LoginUser)
-		userRoutes.GET("/profile", middleware.AuthMiddleware(), controllers.GetUserProfile)
-	}
+	routes.RegisterAuthRoutes(r)
+	routes.RegisterUserRoutes(r)
 
 	r.Run()
 }

@@ -15,7 +15,7 @@ func main() {
 		&models.User{},
 		&models.Driver{},
 		&models.DriverIdentity{},
-		&models.DriverTopUp{},
+		&models.DriverTransaction{},
 		&models.Session{},
 	)
 }

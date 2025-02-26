@@ -23,21 +23,38 @@ func generateToken(userID uint, role string) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
-// Register User
 func RegisterUser(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req struct {
+		FullName    string `json:"fullName"`
+		PhonePrefix string `json:"phonePrefix"`
+		PhoneNumber string `json:"phoneNumber"`
+		Email       string `json:"email"`
+		Role        string `json:"role"`
+		Password    string `json:"password"`
+	}
+
+	// Bind request JSON to struct
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
+	// Hash the password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
-	user.PasswordHash = string(hashedPassword)
+
+	// Create user model instance
+	user := models.User{
+		FullName:     req.FullName,
+		PhonePrefix:  req.PhonePrefix,
+		PhoneNumber:  req.PhoneNumber,
+		Email:        req.Email,
+		Role:         req.Role,
+		PasswordHash: string(hashedPassword), // Store hashed password
+	}
 
 	// Save user to DB
 	if err := initializers.DB.Create(&user).Error; err != nil {
@@ -45,17 +62,17 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Generate Token
-	token, err := generateToken(user.ID, string(user.Role))
+	// Generate JWT token
+	token, err := generateToken(user.ID, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
+	// Return success response
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered", "token": token})
 }
 
-// Login User
 func LoginUser(c *gin.Context) {
 	var req struct {
 		Phone    string `json:"phone"`
@@ -89,19 +106,23 @@ func LoginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
 }
 
-// Get User Profile (Protected)
-func GetUserProfile(c *gin.Context) {
-	userID, exists := c.Get("userId")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
+func GetUser(c *gin.Context) {
+	id := c.Param("id")
 	var user models.User
-	if err := initializers.DB.First(&user, userID).Error; err != nil {
+	if err := initializers.DB.Where("id = ?", id).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"user": user})
+}
+
+func GetAllUsers(c *gin.Context) {
+	var users []models.User
+	if err := initializers.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
