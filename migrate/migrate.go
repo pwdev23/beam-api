@@ -18,5 +18,10 @@ func main() {
 		&models.DriverTransaction{},
 		&models.Session{},
 		&models.PasswordReset{},
+		&models.Ride{},
+		&models.UserTransaction{},
+		&models.PaymentMethod{},
+		&models.DriverLocation{},
+		&models.Rating{},
 	)
 }
