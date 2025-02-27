@@ -61,3 +61,10 @@ type User struct {
 	Role         string `json:"role" gorm:"size:20;not null"` // e.g., "admin", "driver", "customer"
 	PasswordHash string `json:"-" gorm:"not null"`
 }
+
+type PasswordReset struct {
+	BaseModel
+	UserID    uint      `json:"userId" gorm:"not null;index"`
+	Token     string    `json:"token" gorm:"unique;not null"`
+	ExpiresAt time.Time `json:"expiresAt"`
+}

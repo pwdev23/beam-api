@@ -17,5 +17,6 @@ func main() {
 		&models.DriverIdentity{},
 		&models.DriverTransaction{},
 		&models.Session{},
+		&models.PasswordReset{},
 	)
 }
