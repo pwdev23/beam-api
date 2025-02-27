@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/pwdev23/beam-api/helpers"
 	"github.com/pwdev23/beam-api/initializers"
 	"github.com/pwdev23/beam-api/models"
 	"github.com/sendgrid/sendgrid-go"
@@ -39,14 +40,15 @@ func RegisterUser(c *gin.Context) {
 
 	// Bind request JSON to struct
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "errorCode:": helpers.FormatMessageCode(err.Error())})
 		return
 	}
 
 	// Hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		m := "Failed to hash password"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
@@ -62,19 +64,22 @@ func RegisterUser(c *gin.Context) {
 
 	// Save user to DB
 	if err := initializers.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
+		m := "Failed to register user"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Generate JWT token
 	token, err := generateToken(user.ID, user.Role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		m := "Failed to generate token"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Return success response
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered", "token": token})
+	m := "User registered"
+	c.JSON(http.StatusCreated, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m), "token": token})
 }
 
 func LoginUser(c *gin.Context) {
@@ -91,31 +96,36 @@ func LoginUser(c *gin.Context) {
 
 	var user models.User
 	if err := initializers.DB.Where("phone_prefix = ? AND phone_number = ?", req.PhonePrefix, req.PhoneNumber).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid phone or password"})
+		m := "Invalid phone or password"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Check password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid phone or password"})
+		m := "Invalid phone or password"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Generate Token
 	token, err := generateToken(user.ID, user.Role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		m := "Failed to generate token"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
+	m := "Login successful"
+	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m), "token": token})
 }
 
 func GetUser(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
 	if err := initializers.DB.Where("id = ?", id).First(&user).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		m := "User not found"
+		c.JSON(http.StatusNotFound, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
@@ -125,7 +135,8 @@ func GetUser(c *gin.Context) {
 func GetAllUsers(c *gin.Context) {
 	var users []models.User
 	if err := initializers.DB.Find(&users).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+		m := "Failed to fetch users"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
@@ -135,7 +146,8 @@ func GetAllUsers(c *gin.Context) {
 func UpdateUser(c *gin.Context) {
 	userID, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		m := "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
@@ -153,7 +165,8 @@ func UpdateUser(c *gin.Context) {
 
 	var user models.User
 	if err := initializers.DB.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		m := "User not found"
+		c.JSON(http.StatusNotFound, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
@@ -164,11 +177,13 @@ func UpdateUser(c *gin.Context) {
 	user.Email = req.Email
 
 	if err := initializers.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		m := "Failed to update profile"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully", "user": user})
+	m := "Profile updated successfully"
+	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m), "user": user})
 }
 
 func RequestPasswordReset(c *gin.Context) {
@@ -183,14 +198,13 @@ func RequestPasswordReset(c *gin.Context) {
 
 	var user models.User
 	if err := initializers.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		m := "User not found"
+		c.JSON(http.StatusNotFound, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Generate reset token
 	token := uuid.New().String()
-	// log for testing purposes
-	fmt.Println("Reset token: ", token)
 	expiration := time.Now().Add(time.Hour * 6)
 
 	reset := models.PasswordReset{
@@ -211,14 +225,24 @@ func RequestPasswordReset(c *gin.Context) {
 	htmlContent := fmt.Sprintf("<p>Click <a href='%s'>here</a> to reset your password.</p>", resetURL)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 
+	// Disable click tracking
+	trackingSettings := mail.NewTrackingSettings()
+	clickTracking := mail.NewClickTrackingSetting()
+	clickTracking.SetEnable(false) // Disable click tracking
+	clickTracking.SetEnableText(false)
+	trackingSettings.SetClickTracking(clickTracking)
+	message.SetTrackingSettings(trackingSettings)
+
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	_, err := client.Send(message)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
+		m := "Failed to send email"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset link sent"})
+	m := "Password reset link sent"
+	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m)})
 }
 
 func ResetPassword(c *gin.Context) {
@@ -234,26 +258,30 @@ func ResetPassword(c *gin.Context) {
 
 	var reset models.PasswordReset
 	if err := initializers.DB.Where("token = ?", req.Token).First(&reset).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		m := "Invalid or expired token"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	if time.Now().After(reset.ExpiresAt) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
+		m := "Token expired"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		initializers.DB.Delete(&reset)
 		return
 	}
 
 	var user models.User
 	if err := initializers.DB.First(&user, reset.UserID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		m := "User not found"
+		c.JSON(http.StatusNotFound, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Hash new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		m := "Failed to hash password"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
@@ -262,13 +290,15 @@ func ResetPassword(c *gin.Context) {
 	initializers.DB.Save(&user)
 	initializers.DB.Delete(&reset)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successful"})
+	m := "Password reset successful"
+	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m)})
 }
 
 func UpdatePassword(c *gin.Context) {
 	userID, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		m := "Unauthorized"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
@@ -284,31 +314,36 @@ func UpdatePassword(c *gin.Context) {
 
 	var user models.User
 	if err := initializers.DB.First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		m := "User not found"
+		c.JSON(http.StatusNotFound, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Verify old password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Old password is incorrect"})
+		m := "Old password is incorrect"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Hash new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash new password"})
+		m := "Failed to hash new password"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	// Update password in database
 	user.PasswordHash = string(hashedPassword)
 	if err := initializers.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		m := "Failed to update password"
+		c.JSON(http.StatusInternalServerError, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
+	m := "Password updated successfully"
+	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m)})
 }
 
 func ValidateResetToken(c *gin.Context) {
@@ -316,15 +351,18 @@ func ValidateResetToken(c *gin.Context) {
 
 	var reset models.PasswordReset
 	if err := initializers.DB.Where("token = ?", token).First(&reset).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		m := "Invalid or expired token"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
 	if time.Now().After(reset.ExpiresAt) {
 		initializers.DB.Delete(&reset) // Clean up expired tokens
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
+		m := "Token expired"
+		c.JSON(http.StatusUnauthorized, gin.H{"error": m, "errorCode": helpers.FormatMessageCode(m)})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Token is valid"})
+	m := "Token is valid"
+	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m)})
 }
