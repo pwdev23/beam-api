@@ -36,11 +36,12 @@ func RegisterUser(c *gin.Context) {
 		Email       string `json:"email"`
 		Role        string `json:"role"`
 		Password    string `json:"password"`
+		Currency    string `json:"currency"`
 	}
 
 	// Bind request JSON to struct
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "errorCode:": helpers.FormatMessageCode(err.Error())})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "errorCode": helpers.FormatMessageCode(err.Error())})
 		return
 	}
 
@@ -60,6 +61,7 @@ func RegisterUser(c *gin.Context) {
 		Email:        req.Email,
 		Role:         req.Role,
 		PasswordHash: string(hashedPassword), // Store hashed password
+		Currency:     req.Currency,
 	}
 
 	// Save user to DB
@@ -77,9 +79,24 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Return success response
+	// Return success response with user details
 	m := "User registered"
-	c.JSON(http.StatusCreated, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m), "token": token})
+	c.JSON(http.StatusCreated, gin.H{
+		"message":     m,
+		"messageCode": helpers.FormatMessageCode(m),
+		"token":       token,
+		"user": gin.H{
+			"id":       user.ID,
+			"fullName": user.FullName,
+			"email":    user.Email,
+			"role":     user.Role,
+			"currency": user.Currency,
+			"phone": gin.H{
+				"prefix": user.PhonePrefix,
+				"number": user.PhoneNumber,
+			},
+		},
+	})
 }
 
 func LoginUser(c *gin.Context) {
@@ -117,7 +134,22 @@ func LoginUser(c *gin.Context) {
 	}
 
 	m := "Login successful"
-	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m), "token": token})
+	c.JSON(http.StatusOK, gin.H{
+		"message":     m,
+		"messageCode": helpers.FormatMessageCode(m),
+		"token":       token,
+		"user": gin.H{
+			"id":       user.ID,
+			"fullName": user.FullName,
+			"email":    user.Email,
+			"role":     user.Role,
+			"currency": user.Currency,
+			"phone": gin.H{
+				"prefix": user.PhonePrefix,
+				"number": user.PhoneNumber,
+			},
+		},
+	})
 }
 
 func GetUser(c *gin.Context) {
@@ -129,7 +161,22 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	m := "User found"
+	c.JSON(http.StatusOK, gin.H{
+		"message":     m,
+		"messageCode": helpers.FormatMessageCode(m),
+		"user": gin.H{
+			"id":       user.ID,
+			"fullName": user.FullName,
+			"email":    user.Email,
+			"role":     user.Role,
+			"currency": user.Currency,
+			"phone": gin.H{
+				"prefix": user.PhonePrefix,
+				"number": user.PhoneNumber,
+			},
+		},
+	})
 }
 
 func GetAllUsers(c *gin.Context) {
@@ -140,7 +187,29 @@ func GetAllUsers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"users": users})
+	// Format users for response
+	var userList []gin.H
+	for _, user := range users {
+		userList = append(userList, gin.H{
+			"id":       user.ID,
+			"fullName": user.FullName,
+			"email":    user.Email,
+			"role":     user.Role,
+			"currency": user.Currency,
+			"phone": gin.H{
+				"prefix": user.PhonePrefix,
+				"number": user.PhoneNumber,
+			},
+		})
+	}
+
+	// Success response
+	m := "Users retrieved successfully"
+	c.JSON(http.StatusOK, gin.H{
+		"message":     m,
+		"messageCode": helpers.FormatMessageCode(m),
+		"users":       userList,
+	})
 }
 
 func UpdateUser(c *gin.Context) {
@@ -183,7 +252,21 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	m := "Profile updated successfully"
-	c.JSON(http.StatusOK, gin.H{"message": m, "messageCode": helpers.FormatMessageCode(m), "user": user})
+	c.JSON(http.StatusOK, gin.H{
+		"message":     m,
+		"messageCode": helpers.FormatMessageCode(m),
+		"user": gin.H{
+			"id":       user.ID,
+			"fullName": user.FullName,
+			"email":    user.Email,
+			"role":     user.Role,
+			"currency": user.Currency,
+			"phone": gin.H{
+				"prefix": user.PhonePrefix,
+				"number": user.PhoneNumber,
+			},
+		},
+	})
 }
 
 func RequestPasswordReset(c *gin.Context) {
