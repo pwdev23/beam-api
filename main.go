@@ -25,6 +25,7 @@ func main() {
 
 	routes.RegisterAuthRoutes(r)
 	routes.RegisterUserRoutes(r)
+	routes.RegisterDriverRoutes(r)
 
 	r.Run()
 }

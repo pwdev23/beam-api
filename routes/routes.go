@@ -21,8 +21,17 @@ func RegisterUserRoutes(r *gin.Engine) {
 	userRoutes := r.Group("/api/v1/users", middleware.AuthMiddleware())
 	{
 		userRoutes.GET("", controllers.GetAllUsers)
-		userRoutes.GET(":id", controllers.GetUser)
+		userRoutes.GET(":id", controllers.GetUserById)
 		userRoutes.PUT("", controllers.UpdateUser)
 		userRoutes.PUT("/password", controllers.UpdatePassword)
+	}
+}
+
+func RegisterDriverRoutes(r *gin.Engine) {
+	driverRoutes := r.Group("/api/v1/drivers", middleware.AuthMiddleware())
+	{
+		driverRoutes.GET("", controllers.GetAllDrivers)
+		driverRoutes.GET("/:id", controllers.GetDriverByID)
+		driverRoutes.POST("/topup", controllers.TopUpBalance)
 	}
 }
