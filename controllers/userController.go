@@ -288,12 +288,25 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// Update user fields
-	user.FullName = req.FullName
-	user.PhoneCountryCode = req.PhoneCountryCode
-	user.PhoneNumber = req.PhoneNumber
-	user.PhoneComplete = req.PhoneCountryCode + req.PhoneNumber
-	user.Email = req.Email
+	// Update user fields only if they are not empty, otherwise retain old values
+	if req.FullName != "" {
+		user.FullName = req.FullName
+	}
+	if req.PhoneCountryCode != "" {
+		user.PhoneCountryCode = req.PhoneCountryCode
+	}
+	if req.PhoneNumber != "" {
+		user.PhoneNumber = req.PhoneNumber
+	}
+
+	// Only update PhoneComplete if either PhoneCountryCode or PhoneNumber has been updated
+	if req.PhoneCountryCode != "" || req.PhoneNumber != "" {
+		user.PhoneComplete = user.PhoneCountryCode + user.PhoneNumber
+	}
+
+	if req.Email != "" {
+		user.Email = req.Email
+	}
 
 	if err := initializers.DB.Save(&user).Error; err != nil {
 		m := "Failed to update user"
