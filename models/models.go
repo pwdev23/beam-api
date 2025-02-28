@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -28,17 +29,20 @@ type User struct {
 
 type DriverIdentity struct {
 	BaseModel
-	DriverID                  uint       `json:"driverId" gorm:"uniqueIndex;not null"`
-	CountryCode               string     `json:"countryCode" gorm:"size:3;not null"` // ISO 3166-alpha-2 (e.g., "ID")
-	NationalIDNumber          string     `json:"nationalIdNumber" gorm:"uniqueIndex;not null"`
-	DrivingLicenseNumber      string     `json:"drivingLicenseNumber" gorm:"uniqueIndex;not null"`
-	VehicleRegistrationNumber string     `json:"vehicleRegistrationNumber" gorm:"uniqueIndex;not null"`
-	City                      string     `json:"city" gorm:"size:100"`
-	Province                  string     `json:"province" gorm:"size:100"`
-	NationalIDVerified        bool       `json:"nationalIdVerified" gorm:"default:false"`
-	LicenseVerified           bool       `json:"licenseVerified" gorm:"default:false"`
-	VehicleVerified           bool       `json:"vehicleVerified" gorm:"default:false"`
-	VerifiedAt                *time.Time `json:"verifiedAt"`
+	DriverID                  uint           `json:"driverId" gorm:"uniqueIndex;not null"`
+	CountryCode               string         `json:"countryCode" gorm:"size:3;not null"` // ISO 3166-alpha-2 (e.g., "ID")
+	NationalIDNumber          string         `json:"nationalIdNumber" gorm:"uniqueIndex;not null"`
+	NationalIDURLs            pq.StringArray `json:"nationalIdUrls" gorm:"type:text[]"`
+	DrivingLicenseNumber      string         `json:"drivingLicenseNumber" gorm:"uniqueIndex;not null"`
+	DrivingLicenseURLs        pq.StringArray `json:"drivingLicenseUrls" gorm:"type:text[]"`
+	VehicleRegistrationNumber string         `json:"vehicleRegistrationNumber" gorm:"uniqueIndex;not null"`
+	VehicleRegistrationURLs   pq.StringArray `json:"vehicleRegistrationUrls" gorm:"type:text[]"`
+	City                      string         `json:"city" gorm:"size:100"`
+	Province                  string         `json:"province" gorm:"size:100"`
+	NationalIDVerified        bool           `json:"nationalIdVerified" gorm:"default:false"`
+	LicenseVerified           bool           `json:"licenseVerified" gorm:"default:false"`
+	VehicleVerified           bool           `json:"vehicleVerified" gorm:"default:false"`
+	VerifiedAt                *time.Time     `json:"verifiedAt"`
 }
 
 type Driver struct {
@@ -50,6 +54,8 @@ type Driver struct {
 	Balance      float64        `json:"balance" gorm:"default:0"`
 	Currency     string         `json:"currency" gorm:"size:3;not null;default:'IDR'"` // Currency in ISO 4217 format (e.g., "IDR", "USD")
 	Status       string         `json:"status" gorm:"size:20;not null"`
+	ProfilePic   string         `json:"profilePic"`   // URL of driver's profile picture
+	VehiclePhoto string         `json:"vehiclePhoto"` // URL of uploaded vehicle photo
 	Identity     DriverIdentity `json:"identity" gorm:"foreignKey:DriverID;constraint:OnDelete:CASCADE;"`
 }
 

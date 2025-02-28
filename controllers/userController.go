@@ -140,16 +140,14 @@ func RegisterUser(c *gin.Context) {
 		"messageCode": helpers.FormatMessageCode(m),
 		"token":       token,
 		"data": gin.H{
-			"id":       user.ID,
-			"fullName": user.FullName,
-			"email":    user.Email,
-			"role":     user.Role,
-			"currency": user.Currency,
-			"phone": gin.H{
-				"countryCode": user.PhoneCountryCode,
-				"number":      user.PhoneNumber,
-				"complete":    user.PhoneComplete,
-			},
+			"id":               user.ID,
+			"fullName":         user.FullName,
+			"email":            user.Email,
+			"role":             user.Role,
+			"currency":         user.Currency,
+			"phoneCountryCode": user.PhoneCountryCode,
+			"phonNumber":       user.PhoneNumber,
+			"phoneComplete":    user.PhoneComplete,
 		},
 	})
 }
@@ -215,16 +213,14 @@ func GetUserById(c *gin.Context) {
 		"message":     m,
 		"messageCode": helpers.FormatMessageCode(m),
 		"data": gin.H{
-			"id":       user.ID,
-			"fullName": user.FullName,
-			"email":    user.Email,
-			"role":     user.Role,
-			"currency": user.Currency,
-			"phone": gin.H{
-				"countryCode": user.PhoneCountryCode,
-				"number":      user.PhoneNumber,
-				"complete":    user.PhoneComplete,
-			},
+			"id":               user.ID,
+			"fullName":         user.FullName,
+			"email":            user.Email,
+			"role":             user.Role,
+			"currency":         user.Currency,
+			"phoneCountryCode": user.PhoneCountryCode,
+			"phonNumber":       user.PhoneNumber,
+			"phoneComplete":    user.PhoneComplete,
 		},
 	})
 }
@@ -245,16 +241,14 @@ func GetAllUsers(c *gin.Context) {
 	var userList []gin.H
 	for _, user := range users {
 		userList = append(userList, gin.H{
-			"id":       user.ID,
-			"fullName": user.FullName,
-			"email":    user.Email,
-			"role":     user.Role,
-			"currency": user.Currency,
-			"phone": gin.H{
-				"countryCode": user.PhoneCountryCode,
-				"number":      user.PhoneNumber,
-				"complete":    user.PhoneComplete,
-			},
+			"id":               user.ID,
+			"fullName":         user.FullName,
+			"email":            user.Email,
+			"role":             user.Role,
+			"currency":         user.Currency,
+			"phoneCountryCode": user.PhoneCountryCode,
+			"phonNumber":       user.PhoneNumber,
+			"phoneComplete":    user.PhoneComplete,
 		})
 	}
 
@@ -312,16 +306,14 @@ func UpdateUser(c *gin.Context) {
 		"message":     m,
 		"messageCode": helpers.FormatMessageCode(m),
 		"data": gin.H{
-			"id":       user.ID,
-			"fullName": user.FullName,
-			"email":    user.Email,
-			"role":     user.Role,
-			"currency": user.Currency,
-			"phone": gin.H{
-				"countryCode": user.PhoneCountryCode,
-				"number":      user.PhoneNumber,
-				"complete":    user.PhoneComplete,
-			},
+			"id":               user.ID,
+			"fullName":         user.FullName,
+			"email":            user.Email,
+			"role":             user.Role,
+			"currency":         user.Currency,
+			"phoneCountryCode": user.PhoneCountryCode,
+			"phonNumber":       user.PhoneNumber,
+			"phoneComplete":    user.PhoneComplete,
 		},
 	})
 }
