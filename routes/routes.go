@@ -33,5 +33,6 @@ func RegisterDriverRoutes(r *gin.Engine) {
 		driverRoutes.GET("", controllers.GetAllDrivers)
 		driverRoutes.GET("/:id", controllers.GetDriverByID)
 		driverRoutes.POST("/topup", controllers.TopUpBalance)
+		driverRoutes.PUT("", controllers.UpdateDriver)
 	}
 }
